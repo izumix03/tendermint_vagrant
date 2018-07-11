@@ -18,14 +18,14 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "private_network", ip: "192.168.33.10"
   config.vm.synced_folder ".", "/vagrant"
-  config.vm.synced_folder "~/vagrants/ubuntu/go", "/home/vagrant/go", owner: "vagrant", group: "vagrant"
+  # config.vm.synced_folder "~/vagrants/ubuntu/go", "/home/vagrant/go", owner: "vagrant", group: "vagrant"
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "1024"
+    vb.memory = "2048"
   end
 
   config.vm.provision "ansible_local" do |ansible|
     ansible.compatibility_mode = "2.0"
-    ansible.playbook = "site.yml"
+    ansible.playbook = "provisioning/site.yml"
   end
 
   # Disable automatic box update checking. If you disable this, then

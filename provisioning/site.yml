@@ -6,7 +6,7 @@
       apt:
         name: '*'
         state: present
-        # update_cache: yes
+        update_cache: yes
 
     - name: install git
       become: yes
@@ -50,14 +50,32 @@
     - name: install tendermint
       git:
         repo: 'https://github.com/tendermint/tendermint.git'
-        dest: ~/go/src/github.com/tendermint
+        dest: ~/go/src/github.com/tendermint/tendermint
+
+    - name: set tendermint binary path
+      shell: which tendermint
+      register: tendermint_path
+      failed_when: tendermint_path.rc not in [0, 1]
+      changed_when: False
 
     - name: build tools
       shell: /bin/bash -lc "make get_tools && make get_vendor_deps"
       args:
-        chdir: ~/go/src/github.com/tendermint
+        chdir: ~/go/src/github.com/tendermint/tendermint
+      when: tendermint_path.rc == 1
 
     - name: compile tendermint
       shell: /bin/bash -lc "make install && make build"
       args:
         chdir: ~/go/src/github.com/tendermint
+      when: tendermint_path.rc == 1
+
+    - name: set abci-cli path
+      shell: which abci-cli
+      register: abcicli_path
+      failed_when: abcicli_path.rc not in [0, 1]
+      changed_when: False
+
+    - name: install abci
+      shell: /bin/bash -lc "go get -u github.com/tendermint/abci/cmd/abci-cli
+      when: abcicli_path.rc == 1
