@@ -1,5 +1,8 @@
 # tendermint_vagrant
 
+`vagrant-vbguest`
+を入れておくとよさそう。
+
 ```bash
 vagrant up
 ```
