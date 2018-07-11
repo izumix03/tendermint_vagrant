@@ -1,0 +1,63 @@
+---
+- hosts: all
+  tasks:
+    - name: apt-get update
+      become: yes
+      apt:
+        name: '*'
+        state: present
+        # update_cache: yes
+
+    - name: install git
+      become: yes
+      apt:
+        name: git
+
+    - name: clone goenv
+      git:
+        repo: 'https://github.com/syndbg/goenv.git'
+        dest: ~/.goenv
+
+    - name: .bash_profile
+      template:
+        src: bash_profile.j2
+        dest: ~/.bash_profile
+
+    - name: register go version
+      shell: which go
+      register: gopath
+      failed_when: gopath.rc not in [0, 1]
+      changed_when: False
+
+    - name: install go 1.10
+      shell: /bin/bash -lc "goenv install 1.10.3"
+      when: gopath.rc == 1
+
+    - name: set go 1.10 global
+      shell: /bin/bash -lc "goenv global 1.10.3"
+      when: gopath.rc == 1
+
+    - name: set dep
+      shell: which dep
+      register: dep_path
+      failed_when: dep_path.rc not in [0, 1]
+      changed_when: False
+
+    - name: install dep
+      shell: /bin/bash -lc "go get -u github.com/golang/dep/cmd/dep"
+      when: dep_path.rc == 1
+
+    - name: install tendermint
+      git:
+        repo: 'https://github.com/tendermint/tendermint.git'
+        dest: ~/go/src/github.com/tendermint
+
+    - name: build tools
+      shell: /bin/bash -lc "make get_tools && make get_vendor_deps"
+      args:
+        chdir: ~/go/src/github.com/tendermint
+
+    - name: compile tendermint
+      shell: /bin/bash -lc "make install && make build"
+      args:
+        chdir: ~/go/src/github.com/tendermint
